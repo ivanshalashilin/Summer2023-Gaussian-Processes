@@ -4,7 +4,14 @@ from numpy import matmul
 import matplotlib.pyplot as plt
 np.random.seed(10)
 
-#1. Replicate the generation of random functions from Figure 2.2 . Use a regular (or random) grid of scalar inputs and the covariance function from eq. (2.16). Hints on how to generate random samples from multi-variate Gaussian distributions are given in section A.2. Invent some training data points, and make random draws from the resulting GP posterior using eq. (2.19).
+'''
+1. Replicate the generation of random functions from Figure 2.2 . Use a regular (or random) grid of 
+scalar inputs and the covariance function from eq. (2.16). Hints on how to generate random samples 
+from multi-variate Gaussian distributions are given in section A.2. 
+
+Invent some training data points, and make random draws from the resulting GP posterior using eq. (2.19).
+
+'''
 
 def SquareKernel(xInput):#unsure if this is the right nomenclature
     #xp and xq some set of points in the input space, but for the exercise should be scalars
