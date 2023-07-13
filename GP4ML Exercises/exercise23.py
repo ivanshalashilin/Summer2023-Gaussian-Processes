@@ -2,25 +2,26 @@ import numpy as np
 from numpy.linalg import inv
 from numpy import matmul 
 import matplotlib.pyplot as plt
-np.random.seed(2)
+np.random.seed(0)
 '''
-1. Replicate the generation of random functions from Figure 2.2 . Use a regular (or random) 
-grid of scalar inputs and the covariance function from eq. (2.16). Hints on how to generate 
-random samples from multi-variate Gaussian distributions are given in section A.2. Invent 
-some training data points, and make random draws from the resulting GP posterior using eq. (2.19).
+The Wiener process is defined for x ≥ 0 and has f(0)=0. (See section B.2.1 for further details.) 
+It has mean zero and a non-stationary covariance function k(x, x')= min(x, x'). If we condition
+on the Wiener process passing through f(1)=0 we obtain a process known as the Brownian bridge 
+(or tied-down Wiener process). Show that this process has covariance k(x, x')=\min (x, x')-x.x' 
+for 0 ≤ x, x' ≤ 1 and mean 0 . Write a computer program to draw samples from this process at 
+a finite grid of x points in [0,1].
 '''
 
 def SquareKernel(xInput, error = None):#unsure if this is the right nomenclature
     #xp and xq some set of points in the input space, but for the exercise should be scalars
     Dim = len(xInput)
     xRowmat = np.tile(xInput,(Dim,1))
+    xColmat = xRowmat.T
 
-    DifferenceMat = xRowmat-xRowmat.T    
-   
     if error is None:
-        return np.exp(-0.5*np.abs(DifferenceMat)**2)
+        return np.minimum(xRowmat,xColmat)-xRowmat*xColmat
     ErrorMat = error**2 * np.identity(Dim)
-    return np.exp(-0.5*np.abs(DifferenceMat)**2) + ErrorMat
+    return np.minimum(np.minimum(xRowmat,xColmat)-xRowmat*xColmat) + ErrorMat
 
 def RectKernel(xTraining, xQuery):
 
@@ -36,15 +37,15 @@ def RectKernel(xTraining, xQuery):
     xQueryTrainingDim = np.tile(xQuery, (DimTraining,1))
 
     # X-X*
-    DifferenceMat = xTrainingQueryDim.T-xQueryTrainingDim
+    
 
-    return np.exp(-0.5*np.abs(DifferenceMat)**2)
+    return np.minimum(xQueryTrainingDim,xTrainingQueryDim.T)-xQueryTrainingDim*xTrainingQueryDim.T
 
 
-def SamplePosterior(xTraining,xQuery,fTraining, error = None):
+def SamplePosterior(xTraining,xQuery,fTraining):
 
-    #Training Data Kernel (top left with a small error)
-    kXX = SquareKernel(xTraining, error)
+    #Training Data Kernel (top left)
+    kXX = SquareKernel(xTraining)
     #Query Data Kernel (bottom right)
     kXStarXStar = SquareKernel(xQuery)
     #Off Diagonal (Top Right)
@@ -63,9 +64,9 @@ def SamplePosterior(xTraining,xQuery,fTraining, error = None):
 
 
 
-#use a regular grid of scalar inputs
+#use a regular grid of scalar inputs 0≤x≤1
 NPoints = 400
-xQuery = np.linspace(0,10,NPoints)
+xQuery = np.linspace(0,1,NPoints)
 
 #GP without training data
 cov = SquareKernel(xQuery)
@@ -90,28 +91,27 @@ plt.show()
 ####conditioned GP given training data#####
 
 #training data (don't think it is classed as part of the prior? uncertain)
-xTraining = np.array([2,3.5,5,8])
-fTraining = 3*np.array([0.3,0.5,0.4,1.2])
-muTraining = fTraining
-error = 0.5 #small uncertainty on the training data
+xTraining = np.array([0.3,0.35, 0.4,0.5,0.6,0.8])
+fTraining = np.array([0.5,-0.2,0.1,0.9,0.8,-0.1])
+
+xTraining = np.linspace(0.01,0.99,10)
+fTraining = 2*xTraining+3
+
 #plot
 fig, ax = plt.subplots(1,1, figsize =(10,6))
 #generate and plot *conditioned* GPs *given* the training data
 for i in range(3):
-    fQueryGivenTraining, muConditioned, covConditioned = SamplePosterior(xTraining,xQuery,fTraining, error)
+    fQueryGivenTraining, muConditioned, covConditioned = SamplePosterior(xTraining,xQuery,fTraining)
     ax.plot(xQuery, fQueryGivenTraining, color = 'red', alpha = 0.4)
-fQueryGivenTraining, muConditioned, covConditioned = SamplePosterior(xTraining,xQuery,fTraining,error)
+
+fQueryGivenTraining, muConditioned, covConditioned = SamplePosterior(xTraining,xQuery,fTraining)
 ax.plot(xQuery, fQueryGivenTraining, color = 'red', label = 'GP', alpha = 0.3)
 #use marginalisation(?) to get the pm 2 sigma range
-MuPlusTwoSigma = muConditioned+2*np.sqrt(np.diagonal(covConditioned))#+2*error
-MuMinusTwoSigma = muConditioned-2*np.sqrt(np.diagonal(covConditioned))#-2*error
+MuPlusTwoSigma = muConditioned+2*np.sqrt(np.diagonal(covConditioned))
+MuMinusTwoSigma = muConditioned-2*np.sqrt(np.diagonal(covConditioned))
 ax.fill_between(xQuery, MuPlusTwoSigma,MuMinusTwoSigma, color = 'gray', alpha = 0.3, label = '$\mu \pm 2 \sigma$')
 #plot the training data
-ax.plot(xTraining, fTraining,'+' , ms = 20)
-
-ax.plot(xQuery, muConditioned, color = 'gray', alpha =0.8)
-
-#ax.errorbar(xTraining, fTraining,yerr=2*error, marker = '+' , ls = 'none' ,color = 'black', label = 'Training Data', ms = 20)
+ax.plot(xTraining, fTraining, '+' ,color = 'black', label = 'Training Data', ms = 20)
 ax.legend()
 plt.show()
 
