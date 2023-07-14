@@ -3,6 +3,9 @@ from numpy.linalg import inv
 from numpy import matmul 
 import matplotlib.pyplot as plt
 np.random.seed(2)
+from tqdm import tqdm
+
+
 '''
 1. Replicate the generation of random functions from Figure 2.2 . Use a regular (or random) 
 grid of scalar inputs and the covariance function from eq. (2.16). Hints on how to generate 
@@ -93,11 +96,12 @@ plt.show()
 xTraining = np.array([2,3.5,5,8])
 fTraining = 3*np.array([0.3,0.5,0.4,1.2])
 muTraining = fTraining
-error = 0.5 #small uncertainty on the training data
+error = np.sqrt(10.0) #small uncertainty on the training data
 #plot
 fig, ax = plt.subplots(1,1, figsize =(10,6))
 #generate and plot *conditioned* GPs *given* the training data
-for i in range(3):
+NSamples = 3
+for i in tqdm(range(NSamples-1)):
     fQueryGivenTraining, muConditioned, covConditioned = SamplePosterior(xTraining,xQuery,fTraining, error)
     ax.plot(xQuery, fQueryGivenTraining, color = 'red', alpha = 0.4)
 fQueryGivenTraining, muConditioned, covConditioned = SamplePosterior(xTraining,xQuery,fTraining,error)

@@ -1,4 +1,7 @@
-.vscode
 GPJaxExamples/__pycache__
 GPJaxExamples/.ipynb_checkpoints
+
+.ipynb_checkpoints
+**/.vscode/
+GP4MLExercises/.vscode
 

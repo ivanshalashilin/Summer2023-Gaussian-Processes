@@ -66,7 +66,7 @@ def SamplePosterior(xTraining,xQuery,fTraining):
 
 #use a regular grid of scalar inputs 0≤x≤1
 NPoints = 400
-xQuery = np.linspace(0,1,NPoints)
+xQuery = np.linspace(0.0,1.0,NPoints)
 
 #GP without training data
 cov = SquareKernel(xQuery)
