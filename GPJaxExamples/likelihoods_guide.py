@@ -1,5 +1,6 @@
+# %% [markdown]
 # # Likelihood guide
-#
+# %% [markdown]
 # In this notebook, we will walk users through the process of creating a new likelihood
 # in GPJax.
 #
@@ -21,7 +22,7 @@
 # by
 # $$
 # \begin{align}
-#     \label{eq:likelihood_fn}
+#     
 #     p(\mathbf{y}\mid \mathbf{f}) = \prod_{n=1}^N p(y_n\mid f(x_n))\,.
 # \end{align}
 # $$
@@ -48,7 +49,8 @@
 # these methods in the forthcoming sections, but first, we will show how to instantiate
 # a likelihood object. To do this, we'll need a dataset.
 
-# +
+
+# %%
 # Enable Float64 for more stable matrix inversions.
 from jax.config import config
 
@@ -80,7 +82,7 @@ fig, ax = plt.subplots()
 ax.plot(x, y, "o", label="Observations")
 ax.plot(x, f(x), label="Latent function")
 ax.legend()
-# -
+# %% [markdown]
 
 # In this example, our observations have support $[-3, 3]$ and are generated from a
 # sinusoidal function with Gaussian noise. As such, our response values $\mathbf{y}$
@@ -91,9 +93,9 @@ ax.legend()
 # $n$ observations. As such, we must provide this information to GPJax when
 # instantiating a likelihood object. We do this by specifying the `num_datapoints`
 # argument.
-
+# %%
 gpx.likelihoods.Gaussian(num_datapoints=D.n)
-
+# %% [markdown]
 # ### Likelihood parameters
 #
 # Some likelihoods, such as the Gaussian likelihood, contain parameters that we seek
@@ -103,9 +105,9 @@ gpx.likelihoods.Gaussian(num_datapoints=D.n)
 # value, then the likelihood will be initialised with a default value. In the case of
 # the Gaussian likelihood, the default value is $1.0$. If we instead wanted to
 # initialise the likelihood with a value of $0.5$, then we would do this as follows:
-
+# %%
 gpx.likelihoods.Gaussian(num_datapoints=D.n, obs_noise=0.5)
-
+# %% [markdown]
 # To control other properties of the observation noise such as trainability and value
 # constraints, see our [PyTree guide](pytrees.md).
 #
@@ -121,8 +123,8 @@ gpx.likelihoods.Gaussian(num_datapoints=D.n, obs_noise=0.5)
 # We visualise this below for the Gaussian likelihood function. In blue we can see
 # samples of $\mathbf{f}^{\star}$, whilst in red we see samples of
 # $\mathbf{y}^{\star}$.
+# %%
 
-# +
 kernel = gpx.Matern32()
 meanf = gpx.Zero()
 prior = gpx.Prior(kernel=kernel, mean_function=meanf)
@@ -152,11 +154,11 @@ for ax in axes.ravel():
         color=cols[1],
         label="Predictive samples",
     )
-# -
 
+# %% [markdown]
 # Similarly, for a Bernoulli likelihood function, the samples of $y$ would be binary.
+# %%
 
-# +
 likelihood = gpx.Bernoulli(num_datapoints=D.n)
 
 
@@ -179,7 +181,7 @@ for ax in axes.ravel():
         color=cols[1],
         label="Predictive samples",
     )
-# -
+# %% [markdown]
 
 # ### Link functions
 #
@@ -206,7 +208,7 @@ for ax in axes.ravel():
 # variational approximation $q(f)= \mathcal{N}(f\mid m, S)$, the ELBO can be written as
 # $$
 # \begin{align}
-#     \label{eq:elbo}
+#     
 #     \mathcal{L}(q) = \mathbb{E}_{f\sim q(f)}\left[ p(\mathbf{y}\mid f)\right] - \mathrm{KL}\left(q(f)\mid\mid p(f)\right)\,.
 # \end{align}
 # $$
@@ -216,7 +218,7 @@ for ax in axes.ravel():
 # datapoints
 # $$
 # \begin{align}
-#     \label{eq:elbo_decomp}
+#     
 #     \mathcal{L}(q) = \sum_{n=1}^N \mathbb{E}_{f\sim q(f)}\left[ p(y_n\mid f)\right] - \mathrm{KL}\left(q(f)\mid\mid p(f)\right)\,.
 # \end{align}
 # $$
@@ -228,7 +230,7 @@ for ax in axes.ravel():
 # this, let us consider a Gaussian likelihood where we'll first define a variational
 # approximation to the posterior.
 
-# +
+# %%
 z = jnp.linspace(-3.0, 3.0, 10).reshape(-1, 1)
 q = gpx.VariationalGaussian(posterior=posterior, inducing_inputs=z)
 
@@ -239,26 +241,26 @@ def q_moments(x):
 
 
 mean, variance = jax.vmap(q_moments)(x[:, None])
-# -
 
+# %% [markdown]
 # Now that we have the variational mean and variational (co)variance, we can compute
 # the expected log-likelihood using the `expected_log_likelihood` method of the
 # likelihood object.
-
+# %%
 jnp.sum(likelihood.expected_log_likelihood(y=y, mean=mean, variance=variance))
-
+# %% [markdown]
 # However, had we wanted to do this using quadrature, then we would have done the
 # following:
-
+# %%
 lquad = gpx.Gaussian(
     num_datapoints=D.n,
     obs_noise=jnp.array([0.1]),
     integrator=gpx.integrators.GHQuadratureIntegrator(num_points=20),
 )
-
+# %% [markdown]
 # However, this is not recommended for the Gaussian likelihood given that the
 # expectation can be computed analytically.
-
+# %%
 # ## System configuration
 
 # %reload_ext watermark

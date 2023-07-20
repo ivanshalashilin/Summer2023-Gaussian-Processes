@@ -99,7 +99,7 @@ true_kernel = gpx.GraphKernel(
     lengthscale=2.3,
     variance=3.2,
     smoothness=6.1,
-)
+)#kernel for graph problems! neat
 prior = gpx.Prior(mean_function=gpx.Zero(), kernel=true_kernel)
 
 fx = prior(x)

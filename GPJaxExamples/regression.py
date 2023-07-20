@@ -246,9 +246,15 @@ ax.set(xlabel="Training iteration", ylabel="Negative marginal log likelihood")
 # %%
 latent_dist = opt_posterior.predict(xtest, train_data=D)
 predictive_dist = opt_posterior.likelihood(latent_dist)
-
 predictive_mean = predictive_dist.mean()
 predictive_std = predictive_dist.stddev()
+
+
+
+latent_unopt = posterior.predict(xtest, train_data=D)
+predictive_unopt = posterior.likelihood(latent_dist)
+unopt_mean = predictive_unopt.mean()
+unopt_std = predictive_unopt.stddev()
 
 # %% [markdown]
 # With the predictions and their uncertainty acquired, we illustrate the GP's
@@ -257,7 +263,23 @@ predictive_std = predictive_dist.stddev()
 
 # %%
 fig, ax = plt.subplots(figsize=(7.5, 2.5))
+
+
+
 ax.plot(x, y, "x", label="Observations", color=cols[0], alpha=0.5)
+
+
+ax.fill_between(
+    xtest.squeeze(),
+    unopt_mean - 2 * unopt_std,
+    unopt_mean + 2 * unopt_std,
+    alpha=0.2,
+    label="Unoptimised Two sigma",
+    color='green', 
+)
+ax.plot(xtest, unopt_mean, color = 'green', lw = 4, label = 'unoptimised mean')
+
+
 ax.fill_between(
     xtest.squeeze(),
     predictive_mean - 2 * predictive_std,
@@ -280,11 +302,25 @@ ax.plot(
     linewidth=1,
     color=cols[1],
 )
+
+ax.plot(
+    xtest,
+    predictive_mean,
+    linewidth=1,
+    color=cols[1],
+    label = 'optimised mean'
+)
+
+
 ax.plot(
     xtest, ytest, label="Latent function", color=cols[0], linestyle="--", linewidth=2
 )
+
+
+
 ax.plot(xtest, predictive_mean, label="Predictive mean", color=cols[1])
 ax.legend(loc="center left", bbox_to_anchor=(0.975, 0.5))
+plt.show()
 
 # %% [markdown]
 # ## System configuration

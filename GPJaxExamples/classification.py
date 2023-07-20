@@ -92,7 +92,7 @@ ax.scatter(x, y)
 kernel = gpx.RBF()
 meanf = gpx.Constant()
 prior = gpx.Prior(mean_function=meanf, kernel=kernel)
-likelihood = gpx.Bernoulli(num_datapoints=D.n)
+likelihood = gpx.Bernoulli(num_datapoints=D.n) #unique to 
 
 # %% [markdown]
 # We construct the posterior through the product of our prior and likelihood.
