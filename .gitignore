@@ -13,3 +13,7 @@ GP4MLExercises/.vscode
 
 
 .md
+.py
+.pkl
+vmap.py
+/HelmholtzGP/helmholtzold.py
