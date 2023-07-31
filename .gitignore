@@ -16,4 +16,5 @@ GP4MLExercises/.vscode
 .py
 .pkl
 vmap.py
-/HelmholtzGP/helmholtzold.py
+/HelmholtzGP/0helmholtzold.py
+/HelmholtzGP/plots
