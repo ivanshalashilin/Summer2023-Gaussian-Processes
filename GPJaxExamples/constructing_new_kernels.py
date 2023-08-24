@@ -37,7 +37,6 @@ from jaxtyping import (
 import matplotlib.pyplot as plt
 import numpy as np
 import optax as ox
-from simple_pytree import static_field
 import tensorflow_probability.substrates.jax as tfp
 
 with install_import_hook("gpjax", "beartype.beartype"):

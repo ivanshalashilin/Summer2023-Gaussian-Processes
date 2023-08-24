@@ -80,46 +80,24 @@ XYTest3D = jnp.vstack((jnp.repeat(XY_test, repeats =2 , axis = 1), DimLabelTest)
 # ax.set_aspect('equal')
 # ax.set(xlim = [-1.3,1.3], ylim = [-1.3,1.3])
 # plt.show()
-
-#UVTrain = 
-
-
-y = jnp.array([[0.3,  0.5,  0.        ],
-       [0.3,  0.5,  1.        ],
-       [0.3, 0.5,  0.        ],
-       [0.3, 0.5,  1.        ]], dtype=jnp.float64)
-
-
-x = jnp.array([[0.3,  0.5,  0.        ],
-       [0.3,  0.5,  1.        ],
-       [0.3, 0.5,  0.        ],
-       [0.3, 0.5,  1.        ]], dtype=jnp.float64)
-
 from jax.numpy import exp
 @dataclass
-class VelocityRBF(gpx.kernels.AbstractKernel):
-    Var: Float[Array, "1 D "] = param_field(jnp.array([1.0,1.0]))
-    Lenscale: Float[Array, "1 D"]  = param_field(jnp.array([1.0,1.0]))
+class VelocityKernel(gpx.kernels.AbstractKernel):
+    kernel1: gpx.kernels.AbstractKernel = gpx.kernels.RBF(active_dims =[0,1])
+    kernel2: gpx.kernels.AbstractKernel  = gpx.kernels.RBF(active_dims = [0,1])
 
     def __call__(
-        self, x: Float[Array, "1 D"], y: Float[Array, "1 D"]
+        self, x: Float[Array, "1 D"], xp: Float[Array, "1 D"]
     ) -> Float[Array, "1"]:
         #standard RBF-SE kernel is x and x' are on the same output, otherwise returns 0
-    
-        Kexp = lambda xl, yl, var, ls: var*exp(
-                -0.5/ls**2 * abs(xl-yl)
-                )
+        k1Switch = (x[2]+1)%2*(xp[2]+1)%2
+        k2Switch = x[2]*xp[2]
 
-        KexpX = Kexp(x[0],y[0], self.Var[0], self.Lenscale[0])
-        KexpY = Kexp(x[1],y[1], self.Var[1], self.Lenscale[1])
-        
-        Switch = (y[2]+x[2]+1)%2
-        
-        return KexpX * KexpY * Switch
+        return k1Switch*self.kernel1(x,xp) + k2Switch*self.kernel2(x,xp)
 
 D = gpx.Dataset(X=XYTrain3D, y = UVTrain3D)      
 #D = gpx.Dataset(X=x, y = y)      
-kernel = VelocityRBF()
+kernel = VelocityKernel()
 mean = gpx.mean_functions.Zero()
 Prior = gpx.Prior(mean_function=mean, kernel=kernel)
 
@@ -179,7 +157,7 @@ import matplotlib.pyplot as plt
 fig, ax = plt.subplots(1,1, figsize =(6,6))
 ax.set(title = 'Optimised Latent Distribution')
 ax.quiver(XY_test[0].reshape(17,17), XY_test[1].reshape(17,17), UTestOpt.reshape(17,17), VTestOpt.reshape(17,17)) #training data
-ax.quiver(XY_train[0],XY_train[1], UV_train[1], UV_train[0], color = 'red') #testing data
+ax.quiver(XY_train[0],XY_train[1], UV_train[0], UV_train[1], color = 'red') #testing data
 ax.set_aspect('equal')
 ax.set(xlim = [-1.3,1.3], ylim = [-1.3,1.3])
 plt.show()
